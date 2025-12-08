@@ -15,7 +15,7 @@ import { ActivityList } from '@/components/activities/ActivityList';
 import { CategoryManager } from '@/components/categories/CategoryManager';
 import { AIInsights } from '@/components/insights/AIInsights';
 import { EmptyState } from '@/components/analytics/EmptyState';
-import { Clock, CalendarIcon, LogOut, Plus, Settings } from 'lucide-react';
+import { Clock, CalendarIcon, LogOut, Plus, Settings, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,27 +41,34 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Decorative Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 -left-40 w-80 h-80 bg-secondary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 right-1/3 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
+      </div>
+
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-        <div className="container mx-auto px-4 py-4">
+      <header className="sticky top-0 z-50 border-b border-border/50 bg-card/80 backdrop-blur-xl">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary">
-                <Clock className="h-5 w-5 text-primary-foreground" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 sm:p-2.5 rounded-xl gradient-primary shadow-glow">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-foreground">TimeTrack AI</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">{user?.email}</p>
+                <h1 className="text-base sm:text-lg font-display font-bold gradient-text">TimeTrack AI</h1>
+                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block truncate max-w-[150px]">{user?.email}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("justify-start text-left font-normal")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">{format(selectedDate, 'PPP')}</span>
-                    <span className="sm:hidden">{format(selectedDate, 'MMM d')}</span>
+                  <Button variant="outline" size="sm" className={cn("justify-start text-left font-normal border-border/50 hover:border-primary/50 transition-colors")}>
+                    <CalendarIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                    <span className="hidden sm:inline text-sm">{format(selectedDate, 'PPP')}</span>
+                    <span className="sm:hidden text-xs">{format(selectedDate, 'MMM d')}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">
@@ -74,12 +81,12 @@ export default function Dashboard() {
                 </PopoverContent>
               </Popover>
 
-              <Button variant="ghost" size="icon" onClick={() => setShowCategoryManager(true)}>
-                <Settings className="h-4 w-4" />
+              <Button variant="ghost" size="icon" onClick={() => setShowCategoryManager(true)} className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-primary/10">
+                <Settings className="h-4 w-4 text-muted-foreground" />
               </Button>
 
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
+              <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-destructive/10">
+                <LogOut className="h-4 w-4 text-muted-foreground" />
               </Button>
             </div>
           </div>
@@ -87,28 +94,36 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="relative container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Progress Bar */}
         <DayProgress totalMinutes={totalMinutes} />
 
         {/* Add Activity Button */}
         <div className="flex justify-end">
-          <Button onClick={() => setShowActivityForm(true)} className="gap-2">
+          <Button 
+            onClick={() => setShowActivityForm(true)} 
+            className="gap-2 gradient-primary hover:opacity-90 shadow-glow hover:shadow-glow-lg transition-all duration-300 font-display"
+          >
             <Plus className="h-4 w-4" />
-            Add Activity
+            <span className="hidden sm:inline">Add Activity</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="relative">
+              <div className="h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground animate-pulse">Loading your activities...</p>
           </div>
         ) : activities.length === 0 ? (
           <EmptyState onAddActivity={() => setShowActivityForm(true)} />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Left Column - Activities */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-4 sm:space-y-6 order-2 lg:order-1">
               <ActivityList
                 activities={activities}
                 categories={categories}
@@ -119,7 +134,7 @@ export default function Dashboard() {
             </div>
 
             {/* Middle Column - Charts */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-4 sm:space-y-6 order-1 lg:order-2">
               <DailySummary
                 activities={activities}
                 totalMinutes={totalMinutes}
@@ -133,7 +148,7 @@ export default function Dashboard() {
             </div>
 
             {/* Right Column - Activity Chart & Insights */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-4 sm:space-y-6 order-3">
               <ActivityChart
                 activities={activities}
                 getCategoryById={getCategoryById}

@@ -40,40 +40,64 @@ export function TimeDistributionChart({ activities, getCategoryById }: TimeDistr
   if (chartData.length === 0) return null;
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <PieChartIcon className="h-4 w-4 text-primary" />
+    <Card className="border-0 shadow-card overflow-hidden animate-fade-in hover-lift">
+      <CardHeader className="pb-3 border-b border-border/50">
+        <CardTitle className="text-sm font-display font-semibold flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-accent/10">
+            <PieChartIcon className="h-4 w-4 text-accent" />
+          </div>
           Time Distribution
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[250px]">
+      <CardContent className="pt-4">
+        <div className="h-[220px] sm:h-[250px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
+              <defs>
+                {chartData.map((entry, index) => (
+                  <filter key={`shadow-${index}`} id={`shadow-${index}`}>
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3" />
+                  </filter>
+                ))}
+              </defs>
               <Pie
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={40}
-                outerRadius={70}
-                paddingAngle={2}
+                innerRadius={35}
+                outerRadius={65}
+                paddingAngle={3}
                 dataKey="value"
+                strokeWidth={2}
+                stroke="hsl(var(--card))"
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.color}
+                    style={{ filter: `drop-shadow(0 2px 4px ${entry.color}40)` }}
+                  />
                 ))}
               </Pie>
               <Tooltip 
                 formatter={(value: number) => formatTime(value)}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
+                  border: 'none',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 20px hsl(var(--foreground) / 0.1)',
+                  padding: '8px 12px',
+                }}
+                labelStyle={{
+                  fontWeight: 600,
+                  fontFamily: 'Space Grotesk, sans-serif',
                 }}
               />
               <Legend 
-                formatter={(value) => <span className="text-sm text-foreground">{value}</span>}
+                wrapperStyle={{ paddingTop: '16px' }}
+                formatter={(value) => (
+                  <span className="text-xs sm:text-sm text-foreground font-medium">{value}</span>
+                )}
               />
             </PieChart>
           </ResponsiveContainer>
