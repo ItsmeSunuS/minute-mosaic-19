@@ -1,14 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  deleteDoc, 
-  onSnapshot,
-  query,
-  orderBy
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { firebaseApi } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Activity, MAX_MINUTES_PER_DAY } from '@/types';
 import { format } from 'date-fns';
@@ -20,29 +11,38 @@ export function useActivities(selectedDate: Date) {
 
   const dateString = format(selectedDate, 'yyyy-MM-dd');
 
-  useEffect(() => {
+  const fetchActivities = useCallback(async () => {
     if (!user) {
       setActivities([]);
       setLoading(false);
       return;
     }
 
-    const activitiesRef = collection(db, 'users', user.uid, 'dates', dateString, 'activities');
-    const q = query(activitiesRef, orderBy('createdAt', 'desc'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const activitiesData: Activity[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-      })) as Activity[];
+    setLoading(true);
+    try {
+      const data = await firebaseApi.get<Record<string, Omit<Activity, 'id'>>>(`activities/${user.uid}/${dateString}`);
       
-      setActivities(activitiesData);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+      if (data) {
+        const activitiesArray: Activity[] = Object.entries(data).map(([id, activity]) => ({
+          id,
+          ...activity,
+        }));
+        // Sort by createdAt descending
+        activitiesArray.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setActivities(activitiesArray);
+      } else {
+        setActivities([]);
+      }
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+      setActivities([]);
+    }
+    setLoading(false);
   }, [user, dateString]);
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const totalMinutes = activities.reduce((sum, a) => sum + a.duration, 0);
   const remainingMinutes = MAX_MINUTES_PER_DAY - totalMinutes;
@@ -54,11 +54,17 @@ export function useActivities(selectedDate: Date) {
       throw new Error(`Cannot exceed ${MAX_MINUTES_PER_DAY} minutes per day`);
     }
 
-    const activityRef = doc(collection(db, 'users', user.uid, 'dates', dateString, 'activities'));
-    await setDoc(activityRef, {
+    const newActivity = {
       ...activity,
-      createdAt: new Date(),
-    });
+      createdAt: new Date().toISOString(),
+    };
+
+    const result = await firebaseApi.post(`activities/${user.uid}/${dateString}`, newActivity);
+    
+    setActivities(prev => [{
+      id: result.name,
+      ...newActivity,
+    }, ...prev]);
   }, [user, dateString, totalMinutes]);
 
   const updateActivity = useCallback(async (id: string, updates: Partial<Activity>) => {
@@ -74,15 +80,19 @@ export function useActivities(selectedDate: Date) {
       throw new Error(`Cannot exceed ${MAX_MINUTES_PER_DAY} minutes per day`);
     }
 
-    const activityRef = doc(db, 'users', user.uid, 'dates', dateString, 'activities', id);
-    await setDoc(activityRef, { ...currentActivity, ...updates }, { merge: true });
+    await firebaseApi.patch(`activities/${user.uid}/${dateString}/${id}`, updates);
+    
+    setActivities(prev => prev.map(a => 
+      a.id === id ? { ...a, ...updates } : a
+    ));
   }, [user, dateString, activities, totalMinutes]);
 
   const deleteActivity = useCallback(async (id: string) => {
     if (!user) return;
 
-    const activityRef = doc(db, 'users', user.uid, 'dates', dateString, 'activities', id);
-    await deleteDoc(activityRef);
+    await firebaseApi.delete(`activities/${user.uid}/${dateString}/${id}`);
+    
+    setActivities(prev => prev.filter(a => a.id !== id));
   }, [user, dateString]);
 
   return {
@@ -93,5 +103,6 @@ export function useActivities(selectedDate: Date) {
     addActivity,
     updateActivity,
     deleteActivity,
+    refetch: fetchActivities,
   };
 }

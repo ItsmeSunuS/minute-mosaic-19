@@ -11,7 +11,7 @@ export interface Activity {
   name: string;
   categoryId: string;
   duration: number; // in minutes
-  createdAt: Date;
+  createdAt: string; // ISO string for REST API compatibility
 }
 
 export interface DayData {
@@ -32,7 +32,7 @@ export interface UserProfile {
   uid: string;
   email: string;
   displayName?: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export const MAX_MINUTES_PER_DAY = 1440; // 24 hours * 60 minutes
