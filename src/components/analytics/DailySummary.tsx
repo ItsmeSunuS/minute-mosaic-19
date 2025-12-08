@@ -1,6 +1,6 @@
 import { Activity, Category } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, Clock, Hash, TrendingUp } from 'lucide-react';
+import { BarChart3, Clock, Hash, TrendingUp, Award } from 'lucide-react';
 
 interface DailySummaryProps {
   activities: Activity[];
@@ -27,46 +27,50 @@ export function DailySummary({ activities, totalMinutes, remainingMinutes, getCa
   const topCategoryData = topCategory ? getCategoryById(topCategory[0]) : null;
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <BarChart3 className="h-4 w-4 text-primary" />
+    <Card className="border-0 shadow-card overflow-hidden animate-fade-in hover-lift">
+      <CardHeader className="pb-3 border-b border-border/50">
+        <CardTitle className="text-sm font-display font-semibold flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-primary/10">
+            <BarChart3 className="h-4 w-4 text-primary" />
+          </div>
           Daily Summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-3 w-3" />
+      <CardContent className="pt-4 space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/10">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <Clock className="h-3 w-3 text-primary" />
               <span className="text-xs">Total Time</span>
             </div>
-            <p className="text-xl font-semibold">{formatTime(totalMinutes)}</p>
+            <p className="text-xl sm:text-2xl font-display font-bold text-foreground">{formatTime(totalMinutes)}</p>
           </div>
           
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Hash className="h-3 w-3" />
+          <div className="p-3 rounded-xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/10">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              <Hash className="h-3 w-3 text-secondary" />
               <span className="text-xs">Activities</span>
             </div>
-            <p className="text-xl font-semibold">{activities.length}</p>
+            <p className="text-xl sm:text-2xl font-display font-bold text-foreground">{activities.length}</p>
           </div>
         </div>
 
         {topCategoryData && (
-          <div className="pt-2 border-t">
-            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-              <TrendingUp className="h-3 w-3" />
+          <div className="p-3 rounded-xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/10">
+            <div className="flex items-center gap-2 text-muted-foreground mb-2">
+              <Award className="h-3 w-3 text-accent" />
               <span className="text-xs">Top Category</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: topCategoryData.color }}
-              />
-              <span className="font-medium">{topCategoryData.name}</span>
-              <span className="text-sm text-muted-foreground">
-                ({formatTime(topCategory[1])})
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-4 h-4 rounded-full shadow-sm" 
+                  style={{ backgroundColor: topCategoryData.color }}
+                />
+                <span className="font-display font-semibold text-foreground">{topCategoryData.name}</span>
+              </div>
+              <span className="text-sm font-medium text-accent">
+                {formatTime(topCategory[1])}
               </span>
             </div>
           </div>
