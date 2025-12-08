@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showActivityForm, setShowActivityForm] = useState(false);
@@ -30,7 +30,7 @@ export default function Dashboard() {
   const { categories, addCategory, deleteCategory, getCategoryById } = useCategories();
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     navigate('/auth');
   };
 

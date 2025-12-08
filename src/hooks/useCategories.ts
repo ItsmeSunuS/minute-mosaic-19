@@ -1,12 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  deleteDoc, 
-  onSnapshot 
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { firebaseApi } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { Category } from '@/types';
 import { defaultCategories, categoryColors } from '@/data/defaultCategories';
@@ -16,27 +9,36 @@ export function useCategories() {
   const [customCategories, setCustomCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchCategories = useCallback(async () => {
     if (!user) {
       setCustomCategories([]);
       setLoading(false);
       return;
     }
 
-    const categoriesRef = collection(db, 'users', user.uid, 'categories');
-    
-    const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
-      const categoriesData: Category[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Category[];
+    setLoading(true);
+    try {
+      const data = await firebaseApi.get<Record<string, Omit<Category, 'id'>>>(`categories/${user.uid}`);
       
-      setCustomCategories(categoriesData);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+      if (data) {
+        const categoriesArray: Category[] = Object.entries(data).map(([id, category]) => ({
+          id,
+          ...category,
+        }));
+        setCustomCategories(categoriesArray);
+      } else {
+        setCustomCategories([]);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setCustomCategories([]);
+    }
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const allCategories = [...defaultCategories, ...customCategories];
 
@@ -44,21 +46,27 @@ export function useCategories() {
     if (!user) return;
 
     const colorIndex = customCategories.length % categoryColors.length;
-    const categoryRef = doc(collection(db, 'users', user.uid, 'categories'));
-    
-    await setDoc(categoryRef, {
+    const newCategory = {
       name,
       icon,
       color: categoryColors[colorIndex],
       isCustom: true,
-    });
+    };
+
+    const result = await firebaseApi.post(`categories/${user.uid}`, newCategory);
+    
+    setCustomCategories(prev => [...prev, {
+      id: result.name,
+      ...newCategory,
+    }]);
   }, [user, customCategories.length]);
 
   const deleteCategory = useCallback(async (id: string) => {
     if (!user) return;
 
-    const categoryRef = doc(db, 'users', user.uid, 'categories', id);
-    await deleteDoc(categoryRef);
+    await firebaseApi.delete(`categories/${user.uid}/${id}`);
+    
+    setCustomCategories(prev => prev.filter(c => c.id !== id));
   }, [user]);
 
   const getCategoryById = useCallback((id: string) => {
@@ -72,5 +80,6 @@ export function useCategories() {
     addCategory,
     deleteCategory,
     getCategoryById,
+    refetch: fetchCategories,
   };
 }
