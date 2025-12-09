@@ -15,9 +15,10 @@ import { ActivityList } from '@/components/activities/ActivityList';
 import { CategoryManager } from '@/components/categories/CategoryManager';
 import { AIInsights } from '@/components/insights/AIInsights';
 import { EmptyState } from '@/components/analytics/EmptyState';
-import { Clock, CalendarIcon, LogOut, Plus, Settings, Sparkles } from 'lucide-react';
+import { Clock, CalendarIcon, LogOut, Plus, Settings, Sparkles, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import analyticsIllustration from '@/assets/analytics-illustration.png';
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
@@ -39,6 +40,20 @@ export default function Dashboard() {
     setShowActivityForm(false);
   };
 
+  // Get display name (first name or username)
+  const getDisplayName = () => {
+    if (user?.displayName) {
+      return user.displayName.split(' ')[0]; // Get first name
+    }
+    if (user?.email) {
+      return user.email.split('@')[0]; // Get username from email
+    }
+    return 'there';
+  };
+
+  // Check if user has good progress (logged more than 60% of the day)
+  const hasGoodProgress = totalMinutes > 864; // 60% of 1440
+
   return (
     <div className="min-h-screen bg-background">
       {/* Decorative Background */}
@@ -57,8 +72,11 @@ export default function Dashboard() {
                 <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-base sm:text-lg font-display font-bold gradient-text">TimeTrack AI</h1>
-                <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block truncate max-w-[150px]">{user?.email}</p>
+                <h1 className="text-base sm:text-lg font-display font-bold gradient-text">Track Your Time With Me ✨</h1>
+                <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground">
+                  <User className="h-3 w-3" />
+                  <span className="truncate max-w-[120px] sm:max-w-[200px]">{getDisplayName()}</span>
+                </div>
               </div>
             </div>
 
@@ -71,12 +89,13 @@ export default function Dashboard() {
                     <span className="sm:hidden text-xs">{format(selectedDate, 'MMM d')}</span>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
+                <PopoverContent className="w-auto p-0 pointer-events-auto" align="end">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={(date) => date && setSelectedDate(date)}
                     initialFocus
+                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
@@ -85,13 +104,45 @@ export default function Dashboard() {
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </Button>
 
-              <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-destructive/10">
-                <LogOut className="h-4 w-4 text-muted-foreground" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleLogout} 
+                className="h-8 sm:h-9 px-2 sm:px-3 hover:bg-destructive/10 hover:text-destructive flex items-center gap-1.5 transition-all duration-200"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline text-sm">Logout</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
+
+      {/* Welcome Message */}
+      <div className="container mx-auto px-4 pt-4 sm:pt-6">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block">
+              <img 
+                src={analyticsIllustration} 
+                alt="Analytics" 
+                className="w-16 h-16 object-contain rounded-xl"
+              />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
+                Hi {getDisplayName()}! 👋
+                {hasGoodProgress && <span className="ml-2">👏🎉</span>}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {hasGoodProgress 
+                  ? "Amazing progress today! You're doing great! 🌟" 
+                  : "Welcome back! Ready to track your day?"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="relative container mx-auto px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
@@ -102,7 +153,7 @@ export default function Dashboard() {
         <div className="flex justify-end">
           <Button 
             onClick={() => setShowActivityForm(true)} 
-            className="gap-2 gradient-primary hover:opacity-90 shadow-glow hover:shadow-glow-lg transition-all duration-300 font-display"
+            className="gap-2 gradient-primary hover:opacity-90 shadow-glow hover:shadow-glow-lg transition-all duration-300 font-display hover:-translate-y-0.5"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">Add Activity</span>
