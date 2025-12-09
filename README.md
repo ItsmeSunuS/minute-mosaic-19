@@ -1,6 +1,12 @@
-# Welcome to your Lovable project
-
+ WELCOME TO MY TIME TRACKER WITH AI
+ 
 ## Project info
+
+The AI-Powered Daily Time Tracking & Analytics Dashboard is a modern web application that allows users to log how they spend their time each day and visualize it through interactive charts. Users can create an account, log in securely, and record their daily activities along with the time spent on each one. The system ensures that the total time recorded does not exceed 24 hours (1440 minutes).
+
+All data is stored in a Firebase Realtime Database using REST API calls, making the app lightweight and easy to deploy. A dashboard provides visual insights — such as pie charts — showing how time is distributed across different categories like Work, Study, Sleep, Exercise, and more. The interface is fully responsive, clean, and user-friendly.
+
+This project helps users develop better time awareness, improve productivity, and track daily habits effectively.
 
 **URL**: https://github.com/ItsmeSunuS/minute-mosaic-19.git
 
